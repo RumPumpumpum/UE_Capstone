@@ -37,6 +37,8 @@ protected:
 	*/
 	void LookUpAtRate(float Rate);
 
+	/** Fire Button이 눌러지면 호출 */
+	void FireWeapon();
 
 public:	
 	// Called every frame
@@ -65,6 +67,9 @@ private:
 	//기본 look up/down 속도. 초당 회전각도 단위등 다른 스케일링이 최종 회전 속도에 영향을 줄 수 있음
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"));
 	float BaseLookUpRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	class USoundCue* FireSound;
 public:
 	/**
 	* FORCEINLINE은 함수를 인라인 함수로 선언하는 매크로

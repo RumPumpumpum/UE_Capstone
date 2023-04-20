@@ -3,7 +3,10 @@
 
 #include "ShooterCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter()	:
@@ -15,13 +18,24 @@ AShooterCharacter::AShooterCharacter()	:
 	// CameraBoom 생성(캐릭터 주변에 충돌이 있는 경우 카메라 붐이 캐릭터 쪽으로 당겨짐)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.f; // 카메라는 캐릭터 뒤에 이 거리에서 따라감
+	CameraBoom->TargetArmLength = 1000.f; // 카메라는 캐릭터 뒤에 이 거리에서 따라감
 	CameraBoom->bUsePawnControlRotation = true; // 컨트롤러에 맞춰서 arm 회전
 
 	// Follow Camera 생성
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // boom끝에 카메라 설치
 	FollowCamera->bUsePawnControlRotation = false; // 카메라는 arm의 회전을 따라가기만 하면 됨
+
+	// 컨트롤러 회전에 캐릭터를 회전하지 않음. 컨트롤러 회전은 카메라만 회전
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	// 캐릭터 이동 구성
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 입력한 이동방향으로 회전
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); // 회전속도를 결정
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 0.2f;
 }
 
 // Called when the game starts or when spawned
@@ -71,6 +85,14 @@ void AShooterCharacter::LookUpAtRate(float Rate)
 
 }
 
+void AShooterCharacter::FireWeapon()
+{
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -91,5 +113,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AShooterCharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AShooterCharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AShooterCharacter::FireWeapon);
 }
 
