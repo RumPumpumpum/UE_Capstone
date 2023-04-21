@@ -60,21 +60,30 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"));
 	class UCameraComponent* FollowCamera;
 
-	//기본 회전 속도. 초당 회전각도 단위등 다른 스케일링이 최종 회전 속도에 영향을 줄 수 있음
+	// 기본 회전 속도. 초당 회전각도 단위등 다른 스케일링이 최종 회전 속도에 영향을 줄 수 있음
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"));
 	float BaseTurnRate;
 
-	//기본 look up/down 속도. 초당 회전각도 단위등 다른 스케일링이 최종 회전 속도에 영향을 줄 수 있음
+	// 기본 look up/down 속도. 초당 회전각도 단위등 다른 스케일링이 최종 회전 속도에 영향을 줄 수 있음
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"));
 	float BaseLookUpRate;
 
+	// 랜덤 총소리 sound cue
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
 	class USoundCue* FireSound;
+
+	// RightEffectSocket 에서 무기 이팩트
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	class UParticleSystem* MuzzleFlash;
+
+	// 발사를 위한 몽타주
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	class UAnimMontage* HipFireMontage;
 public:
 	/**
 	* FORCEINLINE은 함수를 인라인 함수로 선언하는 매크로
 	* 주로 작은 함수나 빈번히 호출되는 함수를 인라인 함수로 선언하여 프로그램의 성능을 향상
-	*/
+	*/  
 
 	// CameraBoom subobject를 반환한다.
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
