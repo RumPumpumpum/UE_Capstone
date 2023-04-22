@@ -40,6 +40,21 @@ protected:
 	/** Fire Button이 눌러지면 호출 */
 	void FireWeapon();
 
+	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation);
+
+	/** 버튼 입력으로 bAming 값을 ture or false로 설정 */
+	void AimingButtonPressed();
+	void AimingButtonReleased();
+
+	void CameraInterpZoom(float DeltaTime);
+
+	void FireButtonPressed();
+	void FireButtonReleased();
+
+	void StartFireTimer();
+
+	UFUNCTION()
+	void AutoFireReset();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -79,6 +94,44 @@ private:
 	// 발사를 위한 몽타주
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
 	class UAnimMontage* HipFireMontage;
+
+	// 총알에 맞은 이펙트
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	UParticleSystem* ImpactParticles;
+
+	// 총알에 대한 흔적(선)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	UParticleSystem* BeamParticles;
+
+	/** Aiming이 True 일 때 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly , Category = Combat, meta = (AllowPrivateAccess = "true"));
+	bool bAiming;
+
+	/** 기본 카메라 화면 뷰 값 */
+	float CameraDefaultFOV;
+
+	/** 줌인 카메라 화면 뷰 값 */
+	float CameraZoomedFOV;
+
+	/** 이 프레임의 현재 시야 */
+	float CameraCurrentFOV;
+
+	/** 조준할 때 확대 속도 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	float ZoomInterpSpeed;
+
+	/** 좌클릭 혹은 오른쪽 콘솔 트리거 누름 */
+	bool bFireButtonPressed;
+
+	/** 총알을 발사 할 수 있을때 True, 타이머를 기다릴때 false */
+	bool bShouldFire;
+
+	/** 자동사격 간격 */
+	float AutomaticFireRate;
+
+	/** 발사 사이의 타이머 간격 설정 */
+	FTimerHandle AutoFireTimer;
+
 public:
 	/**
 	* FORCEINLINE은 함수를 인라인 함수로 선언하는 매크로

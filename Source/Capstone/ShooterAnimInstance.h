@@ -38,4 +38,10 @@ private:
 	/** 캐릭터가 움직이는 중인지 아닌지 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = " true"))
 	bool bIsAccelerating;
+
+	/** 이동사격에 사용되는 Yaw 오프셋*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = " true"))
+	float MovementOffsetYaw;
+
+
 }; 
