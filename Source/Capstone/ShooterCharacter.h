@@ -25,6 +25,9 @@ protected:
 	/** 좌, 우 입력시 호출 */
 	void MoveRight(float Value);
 
+	/** 점프키 누를시 호출 */
+	void Jump();
+
 	/**
 	* 받은 입력을 통해 주어진 비율(Rate) 만큼 회전한다.
 	* @param Rate : 정규화된 비율, 1.0은 원하는 회전 속도의 100%를 의미
@@ -55,6 +58,9 @@ protected:
 
 	UFUNCTION()
 	void AutoFireReset();
+
+	virtual void Landed(const FHitResult& Hit) override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -107,7 +113,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly , Category = Combat, meta = (AllowPrivateAccess = "true"));
 	bool bAiming;
 
-	/** 기본 카메라 화면 뷰 값 */
+	/** 기본 카메라 화면 뷰 값 */ 
 	float CameraDefaultFOV;
 
 	/** 줌인 카메라 화면 뷰 값 */
@@ -131,6 +137,15 @@ private:
 
 	/** 발사 사이의 타이머 간격 설정 */
 	FTimerHandle AutoFireTimer;
+
+	/** 최초 점프 가능 여부 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Player, meta = (AllowPrivateAccess = "true"));
+	bool bCanFirstJump;
+
+	/** 더블 점프 가능 여부 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Player, meta = (AllowPrivateAccess = "true"));
+	bool bCanDoubleJump;
+
 
 public:
 	/**

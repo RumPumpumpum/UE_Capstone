@@ -46,10 +46,11 @@ AShooterCharacter::AShooterCharacter() :
 	bUseControllerRotationRoll = false;
 
 	// 캐릭터 이동 구성
-	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 현재 이동방향으로 회전할것인가
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); // 회전속도를 결정
-	GetCharacterMovement()->JumpZVelocity = 450.f;
-	GetCharacterMovement()->AirControl = 0.1f;
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향에 맞춰 회전할것인가
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f); // 회전속도를 결정
+	GetCharacterMovement()->JumpZVelocity = 300.f;
+	GetCharacterMovement()->AirControl = 0.5f;
+	AShooterCharacter::JumpMaxHoldTime = 0.3f; // 점프 최대 유지시간
 }
 
 // Called when the game starts or when spawned
@@ -86,9 +87,34 @@ void AShooterCharacter::MoveRight(float Value)
 		const FRotator Rotation{ Controller->GetControlRotation() };
 		const FRotator YawRotation{ 0, Rotation.Yaw, 0 };
 
-		// YawRotation을 회전행렬로 변환한 후, X축 방향을 구하고, Direction 변수에 넣음
+		// YawRotation을 회전행렬로 변환한 후, Y축 방향을 구하고, Direction 변수에 넣음
 		const FVector Direction{ FRotationMatrix{YawRotation}.GetUnitAxis(EAxis::Y) };
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void AShooterCharacter::Jump()
+{
+
+	if (bCanFirstJump)
+	{
+		bCanFirstJump = false;
+		//LaunchCharacter(FVector(GetVelocity().X, GetVelocity().Y, 500.0f), true, true);
+		ACharacter::Jump();
+		GetCharacterMovement()->bOrientRotationToMovement = false; // 캐릭터가 이동 방향에 맞춰 회전할것인가
+	}
+
+	else if(!bCanFirstJump && bCanDoubleJump)
+	{
+		bCanDoubleJump = false;
+		FRotator Rotation{ Controller->GetControlRotation() };
+		Rotation.Pitch = 0;
+		SetActorRotation(Rotation);
+
+		FVector LaunchVelocity = GetVelocity().GetSafeNormal2D() * GetVelocity().Size();
+		LaunchVelocity.Z = 500.0f;
+		LaunchCharacter(LaunchVelocity, true, true);
+		GetCharacterMovement()->bOrientRotationToMovement = false; // 캐릭터가 이동 방향에 맞춰 회전할것인가
 	}
 }
 
@@ -321,6 +347,14 @@ void AShooterCharacter::AutoFireReset()
 	{
 		StartFireTimer();
 	}
+}
+
+void AShooterCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	bCanFirstJump = true;
+	bCanDoubleJump = true;
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향에 맞춰 회전할것인가
 }
 
 // Called every frame
