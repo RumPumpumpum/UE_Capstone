@@ -20,6 +20,7 @@ AShooterCharacter::AShooterCharacter() :
 	CameraZoomedFOV(70.f),
 	CameraCurrentFOV(0.f),
 	ZoomInterpSpeed(20.f),
+
 	// 자동 발사 변수들
 	AutomaticFireRate(0.2f),
 	bShouldFire(true),
@@ -47,10 +48,11 @@ AShooterCharacter::AShooterCharacter() :
 
 	// 캐릭터 이동 구성
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향에 맞춰 회전할것인가
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f); // 회전속도를 결정
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 700.f, 0.f); // 회전속도를 결정
 	GetCharacterMovement()->JumpZVelocity = 300.f;
-	GetCharacterMovement()->AirControl = 0.5f;
+	GetCharacterMovement()->AirControl = 2.0f;
 	AShooterCharacter::JumpMaxHoldTime = 0.3f; // 점프 최대 유지시간
+	AShooterCharacter::JumpMaxCount = 2;
 }
 
 // Called when the game starts or when spawned
@@ -98,23 +100,25 @@ void AShooterCharacter::Jump()
 
 	if (bCanFirstJump)
 	{
-		bCanFirstJump = false;
-		//LaunchCharacter(FVector(GetVelocity().X, GetVelocity().Y, 500.0f), true, true);
-		ACharacter::Jump();
+		/*
+		FRotator NewRotation = FRotator(0, 45, 0); // 액터의 새로운 회전 값
+		SetActorRotation(NewRotation); // 액터의 회전 값을 새로운 값으로 설정
+		*/
+
+
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 캐릭터가 이동 방향에 맞춰 회전할것인가
+		bCanFirstJump = false;
+
+		ACharacter::Jump();
 	}
 
 	else if(!bCanFirstJump && bCanDoubleJump)
 	{
-		bCanDoubleJump = false;
-		FRotator Rotation{ Controller->GetControlRotation() };
-		Rotation.Pitch = 0;
-		SetActorRotation(Rotation);
-
-		FVector LaunchVelocity = GetVelocity().GetSafeNormal2D() * GetVelocity().Size();
-		LaunchVelocity.Z = 500.0f;
-		LaunchCharacter(LaunchVelocity, true, true);
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 캐릭터가 이동 방향에 맞춰 회전할것인가
+		bCanDoubleJump = false;
+
+		ACharacter::Jump();
+		//LaunchCharacter(FVector(GetVelocity().X, GetVelocity().Y, GetCharacterMovement()->JumpZVelocity), true, true);
 	}
 }
 
