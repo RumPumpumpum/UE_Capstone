@@ -2,6 +2,7 @@
 
 
 #include "ShooterCharacter.h"
+#include "Capstone.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -10,6 +11,8 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include "HitInterface.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
@@ -48,10 +51,10 @@ AShooterCharacter::AShooterCharacter() :
 
 	// 캐릭터 이동 구성
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향에 맞춰 회전할것인가
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 700.f, 0.f); // 회전속도를 결정
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f); // 회전속도를 결정
 	GetCharacterMovement()->JumpZVelocity = 300.f;
-	GetCharacterMovement()->AirControl = 2.0f;
-	AShooterCharacter::JumpMaxHoldTime = 0.3f; // 점프 최대 유지시간
+	GetCharacterMovement()->AirControl = 1.0f;
+	AShooterCharacter::JumpMaxHoldTime = 0.15f; // 점프 최대 유지시간
 	AShooterCharacter::JumpMaxCount = 2;
 }
 
@@ -100,25 +103,31 @@ void AShooterCharacter::Jump()
 
 	if (bCanFirstJump)
 	{
-		/*
-		FRotator NewRotation = FRotator(0, 45, 0); // 액터의 새로운 회전 값
-		SetActorRotation(NewRotation); // 액터의 회전 값을 새로운 값으로 설정
-		*/
-
-
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 캐릭터가 이동 방향에 맞춰 회전할것인가
 		bCanFirstJump = false;
 
 		ACharacter::Jump();
 	}
 
-	else if(!bCanFirstJump && bCanDoubleJump)
+	else if (!bCanFirstJump && bCanDoubleJump)
 	{
-		GetCharacterMovement()->bOrientRotationToMovement = false; // 캐릭터가 이동 방향에 맞춰 회전할것인가
+		FVector InputDirection = GetLastMovementInputVector().GetSafeNormal2D();
+		if (!InputDirection.IsNearlyZero())
+		{
+			// 입력 방향에 따라 회전값 계산
+			FRotator NewRotation = InputDirection.Rotation();
+			// 캐릭터의 회전을 입력 방향으로 설정
+			SetActorRotation(NewRotation);
+		}
+
+		// 현재 속도를 유지하면서 입력 방향으로 이동 방향 변경
+		FVector NewVelocity = InputDirection * GetCharacterMovement()->Velocity.Size();
+		GetCharacterMovement()->Velocity = NewVelocity;
+
+		GetCharacterMovement()->bOrientRotationToMovement = false;
 		bCanDoubleJump = false;
 
 		ACharacter::Jump();
-		//LaunchCharacter(FVector(GetVelocity().X, GetVelocity().Y, GetCharacterMovement()->JumpZVelocity), true, true);
 	}
 }
 
@@ -128,7 +137,7 @@ void AShooterCharacter::TurnAtRate(float Rate)
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()); //회전각/초 * 초/프레임
 }
 
-void AShooterCharacter::LookUpAtRate(float Rate) 
+void AShooterCharacter::LookUpAtRate(float Rate)
 {
 	/** 주어진 Rate 정보에서 변화량(delta)를 계산 */
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); //회전각/초 * 초/프레임
@@ -155,18 +164,33 @@ void AShooterCharacter::FireWeapon()
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
 		}
 
-		FVector BeamEnd;
+		FHitResult BeamHitResult;
 		bool bBeamEnd = GetBeamEndLocation(
-			SocketTransform.GetLocation(), BeamEnd);
+			SocketTransform.GetLocation(), BeamHitResult);
 
 		if (bBeamEnd)
 		{
-			if (ImpactParticles)
+			// 피격된 액터가 있나요?
+			if (BeamHitResult.GetActor())
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(
-					GetWorld(),
-					ImpactParticles,
-					BeamEnd);
+				// 피격된 액터의 HitInterface를 가져옴
+				IHitInterface* HitInterface = Cast<IHitInterface>(BeamHitResult.GetActor());
+				// 피격된 액터가 HitInterface를 가지고 있다면
+				if (HitInterface)
+				{
+					HitInterface->Hit_Implementation(BeamHitResult);
+				}
+			}
+			else
+			{
+				// 기본 파티클 이펙트를 생성
+				if (ImpactParticles)
+				{
+					UGameplayStatics::SpawnEmitterAtLocation(
+						GetWorld(),
+						ImpactParticles,
+						BeamHitResult.Location);
+				}
 			}
 		}
 
@@ -177,7 +201,7 @@ void AShooterCharacter::FireWeapon()
 
 		if (Beam)
 		{
-			Beam->SetVectorParameter(FName("Target"), BeamEnd);
+			Beam->SetVectorParameter(FName("Target"), BeamHitResult.Location);
 		}
 
 	}
@@ -192,8 +216,10 @@ void AShooterCharacter::FireWeapon()
 
 bool AShooterCharacter::GetBeamEndLocation(
 	const FVector& MuzzleSocketLocation, 
-	FVector& OutBeamLocation)
+	FHitResult& OutHitResult)
 {
+	FVector OutBeamLocation;
+
 	// 뷰포트의 현재 크기를 얻음
 	FVector2D ViewportSize;
 	if (GEngine && GEngine->GameViewport)
@@ -214,9 +240,9 @@ bool AShooterCharacter::GetBeamEndLocation(
 		CrosshairWorldDirection);
 
 	/*
-* deprojection) 2D 이미지 상의 픽셀 좌표를 3D 공간의 점으로 변환하는 것을 의미
-* deprojection이 성공적인가?
-*/
+	* deprojection) 2D 이미지 상의 픽셀 좌표를 3D 공간의 점으로 변환하는 것을 의미
+	* deprojection이 성공적인가?
+	*/
 	if (bScreenToWorld)
 	{
 		FHitResult ScreenTraceHit;
@@ -239,43 +265,23 @@ bool AShooterCharacter::GetBeamEndLocation(
 		}
 
 		// 이번엔 총신에서 부터 라인추적을 시도한다.
-		FHitResult WeaponTraceHit;
 		const FVector WeaponTraceStart{ MuzzleSocketLocation };
 		const FVector WeaponTraceEnd{ OutBeamLocation };
+
 		GetWorld()->LineTraceSingleByChannel(
-			WeaponTraceHit,
+			OutHitResult,
 			WeaponTraceStart,
 			WeaponTraceEnd,
 			ECollisionChannel::ECC_Visibility);
-		if (WeaponTraceHit.bBlockingHit) // 총신과 End point 사이에 물체가 있는가?
-		{
-			OutBeamLocation = WeaponTraceHit.Location;
-		}
 
-		// BeamEndPoint를 업데이트 한 후 타격효과 발생
-		if (ImpactParticles)
+		if (!OutHitResult.bBlockingHit) // 총신과 End point 사이에 물체가 없는가?
 		{
-			UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
-				ImpactParticles,
-				OutBeamLocation);
-		}
-
-		if (BeamParticles)
-		{
-			UParticleSystemComponent* Beam = UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(),
-				BeamParticles,
-				MuzzleSocketLocation);
-			if (Beam)
-			{
-				Beam->SetVectorParameter(FName("Target"), OutBeamLocation);
-			}
+			OutHitResult.Location = OutBeamLocation;
+			return false;
 		}
 	}
 
-
-	return false;
+	return true;
 }
 
 void AShooterCharacter::AimingButtonPressed()
@@ -356,9 +362,29 @@ void AShooterCharacter::AutoFireReset()
 void AShooterCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
+
 	bCanFirstJump = true;
 	bCanDoubleJump = true;
+	
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향에 맞춰 회전할것인가
+}
+
+EPhysicalSurface AShooterCharacter::GetSurfaceType()
+{
+	FHitResult HitResult;
+	const FVector Start{ GetActorLocation() };
+	const FVector End{ Start + FVector(0.f, 0.f, -400.f) };
+	FCollisionQueryParams QueryParams;
+	QueryParams.bReturnPhysicalMaterial = true;
+
+	GetWorld()->LineTraceSingleByChannel(
+		HitResult, 
+		Start, 
+		End, 
+		ECollisionChannel::ECC_Visibility, 
+		QueryParams);
+
+	return UPhysicalMaterial::DetermineSurfaceType(HitResult.PhysMaterial.Get());
 }
 
 // Called every frame

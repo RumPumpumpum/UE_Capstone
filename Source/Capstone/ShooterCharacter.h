@@ -43,12 +43,13 @@ protected:
 	/** Fire Button이 눌러지면 호출 */
 	void FireWeapon();
 
-	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation);
+	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult);
 
 	/** 버튼 입력으로 bAming 값을 ture or false로 설정 */
 	void AimingButtonPressed();
 	void AimingButtonReleased();
 
+	/** 조준시 카메라 전환 부드럽게 */
 	void CameraInterpZoom(float DeltaTime);
 
 	void FireButtonPressed();
@@ -59,7 +60,11 @@ protected:
 	UFUNCTION()
 	void AutoFireReset();
 
+	/** 캐릭터가 땅에 닿아 있는가 */
 	virtual void Landed(const FHitResult& Hit) override;
+
+	UFUNCTION(BlueprintCallable)
+	EPhysicalSurface GetSurfaceType();
 
 public:	
 	// Called every frame
