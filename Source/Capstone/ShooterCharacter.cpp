@@ -170,21 +170,19 @@ void AShooterCharacter::FireWeapon()
 
 		if (bBeamEnd)
 		{
-			// 피격된 액터가 있나요?
+			// 피격된 액터가 있는가?
 			if (BeamHitResult.GetActor())
 			{
 				// 피격된 액터의 HitInterface를 가져옴
 				IHitInterface* HitInterface = Cast<IHitInterface>(BeamHitResult.GetActor());
+
 				// 피격된 액터가 HitInterface를 가지고 있다면
 				if (HitInterface)
 				{
 					HitInterface->Hit_Implementation(BeamHitResult);
 				}
-			}
-			else
-			{
-				// 기본 파티클 이펙트를 생성
-				if (ImpactParticles)
+				// 피격된 액터가 HitInterface를 가지고 있지 않다면
+				else
 				{
 					UGameplayStatics::SpawnEmitterAtLocation(
 						GetWorld(),
@@ -245,7 +243,6 @@ bool AShooterCharacter::GetBeamEndLocation(
 	*/
 	if (bScreenToWorld)
 	{
-		FHitResult ScreenTraceHit;
 		const FVector Start{ CrosshairWorldPosition };
 		const FVector End{ CrosshairWorldPosition + CrosshairWorldDirection * 50000.f };
 
@@ -254,28 +251,13 @@ bool AShooterCharacter::GetBeamEndLocation(
 
 		// 크로스헤어 위치를 기준으로 밖으로 광선을 쏨 
 		GetWorld()->LineTraceSingleByChannel(
-			ScreenTraceHit,
+			OutHitResult,
 			Start,
 			End,
 			ECollisionChannel::ECC_Visibility);
-		if (ScreenTraceHit.bBlockingHit) // 광선이 충돌했는가?
+		if (!OutHitResult.bBlockingHit) // 광선이 충돌하지 않았는가?
 		{
 			// 끝점(End Point)는 광선이 충돌한 위치
-			OutBeamLocation = ScreenTraceHit.Location;
-		}
-
-		// 이번엔 총신에서 부터 라인추적을 시도한다.
-		const FVector WeaponTraceStart{ MuzzleSocketLocation };
-		const FVector WeaponTraceEnd{ OutBeamLocation };
-
-		GetWorld()->LineTraceSingleByChannel(
-			OutHitResult,
-			WeaponTraceStart,
-			WeaponTraceEnd,
-			ECollisionChannel::ECC_Visibility);
-
-		if (!OutHitResult.bBlockingHit) // 총신과 End point 사이에 물체가 없는가?
-		{
 			OutHitResult.Location = OutBeamLocation;
 			return false;
 		}
