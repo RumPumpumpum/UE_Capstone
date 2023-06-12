@@ -114,6 +114,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
 	UParticleSystem* BeamParticles;
 
+	// 데미지 설정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	float Damage;
+
 	/** Aiming이 True 일 때 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly , Category = Combat, meta = (AllowPrivateAccess = "true"));
 	bool bAiming;
@@ -163,4 +167,7 @@ public:
 
 	// FollowCamera subobject를 반환한다.
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	// Damage를 반환한다.
+	FORCEINLINE float GetDamage() const { return Damage; }
 };

@@ -20,6 +20,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void PlayHitMontage(FName Section, float PlayRate = 1.0f);
+
+private:
 	/** 총알이 맞았을 때 파티클 생성 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "ture"))
 	class UParticleSystem* ImpactParticles;
@@ -28,6 +31,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "ture"))
 	class USoundCue* ImpactSound;
 
+	/** 현재 체력 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "ture"))
+	float Health;
+
+	/** 최대 체력 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
+	float MaxHealth;
+
+	/** Hit 와 Die를 포함한 몽타주 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
+	UAnimMontage* HitMontage;
 
 public:	
 	// Called every frame
@@ -38,4 +52,9 @@ public:
 	
 	virtual void Hit_Implementation(FHitResult HitResult) override;
 
+	virtual float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		AController* EventInstigator,
+		AActor* DamageCauser) override;
 };

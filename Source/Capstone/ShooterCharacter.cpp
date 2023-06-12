@@ -13,6 +13,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "HitInterface.h"
+#include "Enemy.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
@@ -180,6 +181,17 @@ void AShooterCharacter::FireWeapon()
 				if (HitInterface)
 				{
 					HitInterface->Hit_Implementation(BeamHitResult);
+
+					AEnemy* HitEnemy = Cast<AEnemy>(BeamHitResult.GetActor());
+					if (HitEnemy)
+					{
+						UGameplayStatics::ApplyDamage(
+							BeamHitResult.GetActor(),
+							Damage,
+							GetController(),
+							this,
+							UDamageType::StaticClass());
+					}
 				}
 				// 피격된 액터가 HitInterface를 가지고 있지 않다면
 				else
