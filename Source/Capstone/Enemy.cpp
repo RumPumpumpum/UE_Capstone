@@ -33,6 +33,25 @@ void AEnemy::PlayHitMontage(FName Section, float PlayRate)
 	}
 }
 
+void AEnemy::PlayDieMontage(FName Section, float PlayRate)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(DieMontage, PlayRate);
+		AnimInstance->Montage_JumpToSection(Section, DieMontage);
+	}
+}
+
+void AEnemy::Die()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DieMontage)
+	{
+		AnimInstance->Montage_Play(DieMontage);
+	}
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
@@ -57,7 +76,11 @@ void AEnemy::Hit_Implementation(FHitResult HitResult)
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
 	}
 
-	PlayHitMontage(FName("HitReact"));
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DieMontage)
+	{
+		AnimInstance->Montage_Play(HitMontage);
+	}
 
 }
 
@@ -70,6 +93,7 @@ float AEnemy::TakeDamage(
 	if (Health - DamageAmount <= 0.f)
 	{
 		Health = 0.f;
+		Die();
 	}
 	else
 	{

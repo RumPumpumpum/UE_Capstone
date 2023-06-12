@@ -22,6 +22,11 @@ protected:
 
 	void PlayHitMontage(FName Section, float PlayRate = 1.0f);
 
+	void PlayDieMontage(FName Section, float PlayRate = 1.0f);
+	
+	void Die();
+
+
 private:
 	/** 총알이 맞았을 때 파티클 생성 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "ture"))
@@ -39,9 +44,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
 	float MaxHealth;
 
-	/** Hit 와 Die를 포함한 몽타주 */
+	/** Hit 몽타주 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
 	UAnimMontage* HitMontage;
+
+	/** Die 몽타주 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
+	UAnimMontage* DieMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Behavior Tree", meta = (AllowPrivateAccess = "ture"))
+	class UBehaviorTree* BehaviorTree;
 
 public:	
 	// Called every frame
@@ -57,4 +69,6 @@ public:
 		struct FDamageEvent const& DamageEvent,
 		AController* EventInstigator,
 		AActor* DamageCauser) override;
+
+	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 };
