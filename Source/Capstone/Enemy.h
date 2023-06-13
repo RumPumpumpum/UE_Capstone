@@ -26,6 +26,16 @@ protected:
 	
 	void Die();
 
+	/** 탐지 범위에 무언가 오버랩 되면 호출*/
+	UFUNCTION()
+	void AgroSphereOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
 
 private:
 	/** 총알이 맞았을 때 파티클 생성 */
@@ -52,8 +62,24 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
 	UAnimMontage* DieMontage;
 
+	/** Behavior Tree */
 	UPROPERTY(EditAnywhere, Category = "Behavior Tree", meta = (AllowPrivateAccess = "ture"))
 	class UBehaviorTree* BehaviorTree;
+	
+	/** enemy를 움직일 지점 */
+	UPROPERTY(EditAnywhere, Category = "Behavior Tree", meta = (AllowPrivateAccess = "ture", MakeEditWidget = "true"))
+	FVector PatrolPoint;
+
+	/** enemy를 움직일 지점2 */
+	UPROPERTY(EditAnywhere, Category = "Behavior Tree", meta = (AllowPrivateAccess = "ture", MakeEditWidget = "true"))
+	FVector PatrolPoint2;
+
+	class AEnemyController* EnemyController;
+
+	/** 적이 탐지할 범위 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* AgroSphere;
+
 
 public:	
 	// Called every frame
