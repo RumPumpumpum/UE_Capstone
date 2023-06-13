@@ -11,16 +11,22 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/SphereComponent.h"
 #include "ShooterCharacter.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
-AEnemy::AEnemy() : Health(100.f), MaxHealth(100.f)
+AEnemy::AEnemy() : Health(100.f), MaxHealth(100.f), Attack_1(TEXT("Attack_1")), Attack_2(TEXT("Attack_2"))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// 탐지 영역 생성
+	// 탐지 범위 생성
 	AgroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AgroSphere"));
 	AgroSphere->SetupAttachment(GetRootComponent());
+
+	// 공격 범위 생성
+	AttackRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRangeSphere"));
+	AttackRangeSphere->SetupAttachment(GetRootComponent());
+
 }
 
 // Called when the game starts or when spawned
@@ -30,8 +36,26 @@ void AEnemy::BeginPlay()
 
 	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::AgroSphereOverlap);
 
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
-	
+	AttackRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::AttackRangeOverlap);
+
+	AttackRangeSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemy::AttackRangeEndOverlap);
+
+
+
+	GetMesh()->SetCollisionResponseToChannel(
+		ECollisionChannel::ECC_Visibility, 
+		ECollisionResponse::ECR_Block);
+
+	/** 카메라가 mesh와 capsule은 무시 */
+	GetMesh()->SetCollisionResponseToChannel(
+		ECollisionChannel::ECC_Camera, 
+		ECollisionResponse::ECR_Ignore);
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(
+		ECollisionChannel::ECC_Camera,
+		ECollisionResponse::ECR_Ignore);
+
+
 	EnemyController = Cast<AEnemyController>(GetController());
 
 	const FVector WorldPatrolPoint = UKismetMathLibrary::TransformLocation(
@@ -107,12 +131,71 @@ void AEnemy::AgroSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 {
 	if (OtherActor == nullptr) return;
 
-	auto Character = Cast<AShooterCharacter>(OtherActor);
+	AShooterCharacter* Character = Cast<AShooterCharacter>(OtherActor);
 	if (Character)
 	{
 		// Blackboard의 Target 키 설정
 		EnemyController->GetBlackboardComponent()->SetValueAsObject(TEXT("Target"), Character);
 	}
+}
+
+void AEnemy::AttackRangeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == nullptr) return;
+	AShooterCharacter* Character = Cast<AShooterCharacter>(OtherActor);
+	if (Character)
+	{
+		bInAttackRange = true;
+		if (EnemyController)
+		{
+			EnemyController->GetBlackBoardComponent()->SetValueAsBool(
+				TEXT("InAttackRange"),
+				true);
+		}
+	}
+}
+
+void AEnemy::AttackRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor == nullptr) return;
+	AShooterCharacter* Character = Cast<AShooterCharacter>(OtherActor);
+	if (Character)
+	{
+		bInAttackRange = false;
+		if (EnemyController)
+		{
+			EnemyController->GetBlackBoardComponent()->SetValueAsBool(
+				TEXT("InAttackRange"),
+				false);
+		}
+	}
+}
+
+void AEnemy::PlayAttackMontage(FName Section, float PlayRate)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && AttackMontage)
+	{
+		AnimInstance->Montage_Play(AttackMontage);
+		AnimInstance->Montage_JumpToSection(Section, AttackMontage);
+	}
+}
+
+FName AEnemy::GetAttackSectionName()
+{
+	FName SectionName;
+	const int32 Section{ FMath::RandRange(1, 2) }; // 랜덤
+	switch(Section)
+	{
+	case 1:
+		SectionName = Attack_1;
+		break;
+	case 2:
+		SectionName = Attack_2;
+		break;
+	}
+
+	return SectionName;
 }
 
 // Called every frame

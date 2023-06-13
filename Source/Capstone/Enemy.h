@@ -36,6 +36,28 @@ protected:
 		bool bFromSweep,
 		const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void AttackRangeOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void AttackRangeEndOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintCallable)
+	void PlayAttackMontage(FName Section, float PlayRate);
+
+	UFUNCTION(BlueprintPure)
+	FName GetAttackSectionName();
+
 
 private:
 	/** 총알이 맞았을 때 파티클 생성 */
@@ -57,6 +79,10 @@ private:
 	/** Hit 몽타주 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
 	UAnimMontage* HitMontage;
+
+	/** Attack 몽타주 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
+	UAnimMontage* AttackMontage;
 
 	/** Die 몽타주 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
@@ -80,6 +106,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* AgroSphere;
 
+	/** 공격 범위에 들어오면 true */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bInAttackRange;
+
+	/** 공격 범위 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USphereComponent* AttackRangeSphere;
+
+	/** Attack 몽타쥬의 섹션 이름들 */
+	FName Attack_1;
+	FName Attack_2;
 
 public:	
 	// Called every frame
