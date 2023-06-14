@@ -24,11 +24,12 @@ AShooterCharacter::AShooterCharacter() :
 	CameraZoomedFOV(70.f),
 	CameraCurrentFOV(0.f),
 	ZoomInterpSpeed(20.f),
-
 	// 자동 발사 변수들
 	AutomaticFireRate(0.2f),
 	bShouldFire(true),
-	bFireButtonPressed(false)
+	bFireButtonPressed(false),
+	Health(100.f),
+	MaxHealth(100.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -414,3 +415,60 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		&AShooterCharacter::AimingButtonReleased);
 }
 
+float AShooterCharacter::TakeDamage(
+	float DamageAmount,
+	FDamageEvent const& DamageEvent,
+	AController* EventInstigator,
+	AActor* DamageCauser)
+{
+
+	if (Health - DamageAmount <= 0.f)
+	{
+		Health = 0.f;
+		Die();
+	}
+	else
+	{
+		Health -= DamageAmount;
+	}
+
+	return DamageAmount;
+}
+
+void AShooterCharacter::Die()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DieMontage)
+	{
+		AnimInstance->Montage_Play(DieMontage);
+	}
+
+}
+
+void AShooterCharacter::DyingCharacter()
+{
+	GetMesh()->bPauseAnims = true;
+	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+	if (PC)
+	{
+		DisableInput(PC);
+	}
+}
+
+/*
+void AShooterCharacter::DoDamage(AActor* Victim)
+{
+	if (Victim == nullptr) return;
+	AShooterCharacter* Character = Cast<AShooterCharacter>(Victim);
+	if (Character)
+	{
+		UGameplayStatics::ApplyDamage(
+			Character,
+			BaseDamage,
+			EnemyController,
+			this,
+			UDamageType::StaticClass());
+	}
+}
+
+*/

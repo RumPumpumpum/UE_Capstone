@@ -15,6 +15,13 @@ public:
 	// Sets default values for this character's properties
 	AShooterCharacter();
 
+	// 받는 데미지 처리
+	virtual float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		AController* EventInstigator,
+		AActor* DamageCauser) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -65,6 +72,13 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	EPhysicalSurface GetSurfaceType();
+
+	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void DyingCharacter();
+
+	void DoDamage(AActor* Victim);
 
 public:	
 	// Called every frame
@@ -155,6 +169,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Player, meta = (AllowPrivateAccess = "true"));
 	bool bCanDoubleJump;
 
+	/** 현재 체력 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "ture"))
+	float Health;
+
+	/** 최대 체력 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "ture"))
+	float MaxHealth;
+
+	/** 캐릭터 사망 몽타쥬 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Player, meta = (AllowPrivateAccess = "true"));
+	UAnimMontage* DieMontage;
 
 public:
 	/**
