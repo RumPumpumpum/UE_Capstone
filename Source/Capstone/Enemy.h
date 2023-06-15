@@ -76,6 +76,9 @@ protected:
 	void DeactivateWeapon();
 
 	void DoDamage(AActor* Victim);
+
+	UFUNCTION(BlueprintCallable)
+	void SetStunned(bool Stunned);
 private:
 	/** 총알이 맞았을 때 파티클 생성 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "ture"))
@@ -154,6 +157,9 @@ private:
 	/** 적에게 받는 기본 데미지 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Player, meta = (AllowPrivateAccess = "true"));
 	float BaseDamage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
+	bool bStunned;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

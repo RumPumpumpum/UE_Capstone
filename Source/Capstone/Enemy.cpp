@@ -23,7 +23,8 @@ AEnemy::AEnemy() :
 	bCanAttack(true),
 	AttackWaitTime(2.f),
 	bDie(false),
-	BaseDamage(20.f)
+	BaseDamage(20.f),
+	bStunned(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -265,6 +266,16 @@ void AEnemy::DoDamage(AActor* Victim)
 	}
 }
 
+void AEnemy::SetStunned(bool Stunned)
+{
+	bStunned = true;
+
+	if (EnemyController)
+	{
+		EnemyController->GetBlackBoardComponent()->SetValueAsBool(TEXT("Stunned"), Stunned);
+	}
+}
+
 void AEnemy::WeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	DoDamage(OtherActor);
@@ -310,8 +321,9 @@ void AEnemy::Hit_Implementation(FHitResult HitResult)
 	// 죽었으면 피격 모션 무시
 	if (bDie) return;
 
-	PlayHitMontage(FName("HitReact"));
 
+	PlayHitMontage(FName("HitReact"));
+	SetStunned(true);
 }
 
 float AEnemy::TakeDamage(
