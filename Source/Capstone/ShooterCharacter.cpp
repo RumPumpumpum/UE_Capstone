@@ -424,8 +424,14 @@ float AShooterCharacter::TakeDamage(
 	AController* EventInstigator,
 	AActor* DamageCauser)
 {
+	if (bDied) return 0;
 
-	if (Health - DamageAmount <= 0.f && !bDied)
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySound2D(this, HitSound);
+	}
+
+	if (Health - DamageAmount <= 0.f )
 	{
 		Health = 0.f;
 		Die();

@@ -181,6 +181,10 @@ private:
 
 	bool bDied;
 
+	// 랜덤 피격소리
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"));
+	class USoundCue* HitSound;
+
 public:
 	/**
 	* FORCEINLINE은 함수를 인라인 함수로 선언하는 매크로
