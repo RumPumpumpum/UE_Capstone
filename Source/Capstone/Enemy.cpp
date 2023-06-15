@@ -92,27 +92,12 @@ void AEnemy::BeginPlay()
 		GetActorTransform(),
 		PatrolPoint);
 
-	DrawDebugSphere(
-		GetWorld(),
-		WorldPatrolPoint,
-		25.f,
-		12,
-		FColor::Red,
-		true
-	);
 
 	const FVector WorldPatrolPoint2 = UKismetMathLibrary::TransformLocation(
 		GetActorTransform(),
 		PatrolPoint2);
 
-	DrawDebugSphere(
-		GetWorld(),
-		WorldPatrolPoint2,
-		25.f,
-		12,
-		FColor::Red,
-		true
-	);
+
 
 	if (EnemyController)
 	{
@@ -162,6 +147,7 @@ void AEnemy::Die()
 void AEnemy::AgroSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == nullptr) return;
+	if (EnemyController == nullptr) return;
 
 	AShooterCharacter* Character = Cast<AShooterCharacter>(OtherActor);
 	if (Character)
@@ -174,6 +160,8 @@ void AEnemy::AgroSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 void AEnemy::AttackRangeOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == nullptr) return;
+	if (EnemyController == nullptr) return;
+
 	AShooterCharacter* Character = Cast<AShooterCharacter>(OtherActor);
 	if (Character)
 	{
