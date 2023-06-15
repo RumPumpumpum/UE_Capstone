@@ -29,7 +29,8 @@ AShooterCharacter::AShooterCharacter() :
 	bShouldFire(true),
 	bFireButtonPressed(false),
 	Health(100.f),
-	MaxHealth(100.f)
+	MaxHealth(100.f),
+	bDied(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -347,6 +348,8 @@ void AShooterCharacter::StartFireTimer()
 
 void AShooterCharacter::AutoFireReset()
 {
+	if (bDied) return; // 죽으면 발사 불가능
+
 	bShouldFire = true;
 	if (bFireButtonPressed)
 	{
@@ -422,7 +425,7 @@ float AShooterCharacter::TakeDamage(
 	AActor* DamageCauser)
 {
 
-	if (Health - DamageAmount <= 0.f)
+	if (Health - DamageAmount <= 0.f && !bDied)
 	{
 		Health = 0.f;
 		Die();
@@ -437,38 +440,21 @@ float AShooterCharacter::TakeDamage(
 
 void AShooterCharacter::Die()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && DieMontage)
-	{
-		AnimInstance->Montage_Play(DieMontage);
-	}
-
-}
-
-void AShooterCharacter::DyingCharacter()
-{
-	GetMesh()->bPauseAnims = true;
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	if (PC)
 	{
 		DisableInput(PC);
 	}
-}
 
-/*
-void AShooterCharacter::DoDamage(AActor* Victim)
-{
-	if (Victim == nullptr) return;
-	AShooterCharacter* Character = Cast<AShooterCharacter>(Victim);
-	if (Character)
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DieMontage)
 	{
-		UGameplayStatics::ApplyDamage(
-			Character,
-			BaseDamage,
-			EnemyController,
-			this,
-			UDamageType::StaticClass());
-	}
+		AnimInstance->Montage_Play(DieMontage);
+		bDied = true;
+	} 
 }
 
-*/
+void AShooterCharacter::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+}

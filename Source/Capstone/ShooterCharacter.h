@@ -76,9 +76,7 @@ protected:
 	void Die();
 
 	UFUNCTION(BlueprintCallable)
-	void DyingCharacter();
-
-	void DoDamage(AActor* Victim);
+	void FinishDeath();
 
 public:	
 	// Called every frame
@@ -180,6 +178,8 @@ private:
 	/** Ä³¸¯ÅÍ »ç¸Á ¸ùÅ¸Áê */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Player, meta = (AllowPrivateAccess = "true"));
 	UAnimMontage* DieMontage;
+
+	bool bDied;
 
 public:
 	/**
