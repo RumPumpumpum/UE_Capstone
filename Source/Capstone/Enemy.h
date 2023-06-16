@@ -7,6 +7,7 @@
 #include "HitInterface.h"
 #include "Enemy.generated.h"
 
+
 UCLASS()
 class CAPSTONE_API AEnemy : public ACharacter, public IHitInterface
 {

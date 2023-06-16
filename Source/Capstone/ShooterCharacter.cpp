@@ -14,6 +14,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "HitInterface.h"
 #include "Enemy.h"
+#include "GameFramework/PlayerController.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
@@ -446,10 +447,15 @@ float AShooterCharacter::TakeDamage(
 
 void AShooterCharacter::Die()
 {
+	
 	APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 	if (PC)
 	{
-		DisableInput(PC);
+		APawn* Pawn = PC->GetPawn(); // 현재 컨트롤러의 Pawn 가져오기
+		if (Pawn)
+		{
+			PC->UnPossess(); // 컨트롤러와 Pawn 연결 끊기
+		}
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -458,6 +464,14 @@ void AShooterCharacter::Die()
 		AnimInstance->Montage_Play(DieMontage);
 		bDied = true;
 	} 
+
+	// 죽으면 3초 뒤 메인화면으로
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [&]()
+		{
+			FName LevelName = FName("Main");
+			UGameplayStatics::OpenLevel(this, LevelName);
+		}, 3.0f, false);
 }
 
 void AShooterCharacter::FinishDeath()
