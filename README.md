@@ -7,6 +7,8 @@
 
 <br> 결과 영상 <br>
 https://youtu.be/2I4I4cpcoVQ
-<h1> 다운로드 </h1> </a>
+<br> 발표 PPT <br>
+https://docs.google.com/presentation/d/1LNFpiocZM_Bb0BeHENNxaa9WuYI57HIg/edit?usp=sharing&ouid=104586821378590279271&rtpof=true&sd=true
+<h1> 게임다운로드 </h1> </a>
 https://drive.google.com/file/d/19hDO9Sb0oixFHm8cSfEz1_ond8hukaBy/view?usp=drive_link
 </div>
