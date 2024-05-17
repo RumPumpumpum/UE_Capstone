@@ -5,6 +5,8 @@
 언리얼엔진 5.1 버전을 사용하였습니다.<br>
 게임에 사용 된 에셋은 오픈소스 및 정당하게 구매한 에셋입니다.<br>
 
+![image](https://github.com/RumPumpumpum/UE_Capstone/assets/104812604/ef7a8732-9d46-49f6-b062-4604be703652)
+
 <br> 결과 영상 <br>
 https://youtu.be/2I4I4cpcoVQ
 <br> 발표 PPT <br>
